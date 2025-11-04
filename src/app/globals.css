@@ -30,44 +30,23 @@ body{
 
 .accent{ color: var(--accent); }
 
-/* Eden chat theming */
+/* Dark themed Eden chat widget matching Bitcoin landing page */
 .eden-widget .bot-bubble {
-  background: #ffffff;           /* white bubble for bot */
-  color: #1f2937;                /* gray-800 text */
-  border: 1px solid #e5e7eb;     /* gray-200 border */
-  border-radius: 0.75rem;
-  padding: 0.75rem 1rem;
-  display: inline-block;
-  max-width: 85%;
+  background: linear-gradient(135deg, #0f1724 0%, #1a2332 100%);
+  color: #e5e7eb;
+  border: 1px solid rgba(247, 147, 26, 0.2);
+  border-radius: 14px;
+  padding: 12px 16px;
+  max-width: 80%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 .eden-widget .user-bubble {
-  background: #22c55e;           /* green-500 */
-  color: #ffffff;
-  border-radius: 0.75rem;
-  padding: 0.75rem 1rem;
-  display: inline-block;
-  max-width: 85%;
-}
-.eden-widget .bot-bubble p { color: #1f2937; }  /* enforce readable grey */
-.eden-widget .user-bubble p { color: #ffffff; }
-
-/* Light‑blue Eden theme */
-.eden-widget .bot-bubble {
-  background: #ffffff;           /* bot bubble */
-  color: #1f2937;                /* gray-800 */
-  border: 1px solid #e5e7eb;     /* gray-200 */
-  border-radius: 14px;
-  padding: 10px 14px;
-  max-width: 85%;
-  box-shadow: 0 1px 0 rgba(2, 132, 199, 0.08);
-}
-.eden-widget .user-bubble {
-  background: #3b82f6;           /* blue-500 */
+  background: linear-gradient(135deg, #f7931a 0%, #ff9f3a 100%);
   color: #ffffff;
   border-radius: 14px;
-  padding: 10px 14px;
-  max-width: 85%;
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.12) inset;
+  padding: 12px 16px;
+  max-width: 80%;
+  box-shadow: 0 2px 8px rgba(247, 147, 26, 0.4);
 }
-.eden-widget .bot-bubble p { color: #1f2937; }
-.eden-widget .user-bubble p { color: #ffffff; }
+.eden-widget .bot-bubble p { color: #e5e7eb; }
+.eden-widget .user-bubble p { color: #ffffff; font-weight: 500; }

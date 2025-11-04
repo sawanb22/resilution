@@ -87,11 +87,12 @@ export default function EdenChatWidget() {
 
   return (
     <div className="eden-widget">
-      {/* Floating launcher button - always visible */}
+      {/* Floating launcher button */}
       <button
         onClick={() => setIsOpen((v) => !v)}
-        className="fixed bottom-6 right-6 h-16 w-16 rounded-full shadow-xl focus:outline-none focus:ring-4 focus:ring-blue-300
-                   bg-gradient-to-br from-sky-400 to-blue-600 text-white text-2xl z-[100] transition-transform hover:scale-105"
+        className="fixed bottom-6 right-6 h-16 w-16 rounded-full shadow-2xl focus:outline-none focus:ring-4 focus:ring-orange-500/50
+                   bg-gradient-to-br from-orange-500 to-orange-600 text-white text-2xl z-[100] transition-all hover:scale-110"
+        style={{ background: 'linear-gradient(135deg, #f7931a 0%, #ff9f3a 100%)' }}
         aria-label={isOpen ? 'Close chat' : 'Open chat'}
         title={isOpen ? 'Close' : 'Chat'}
       >
@@ -101,7 +102,7 @@ export default function EdenChatWidget() {
       {/* Backdrop for fullscreen */}
       {isOpen && isFullscreen && (
         <div
-          className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[60]"
+          className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[60]"
           onClick={() => setIsFullscreen(false)}
         />
       )}
@@ -118,24 +119,28 @@ export default function EdenChatWidget() {
           <div
             className={
               (isFullscreen ? 'h-[90vh] w-full max-w-3xl' : 'h-[600px] w-[400px]') +
-              ' flex flex-col rounded-2xl overflow-hidden shadow-2xl border border-sky-100 bg-white'
+              ' flex flex-col rounded-2xl overflow-hidden shadow-2xl border border-orange-500/30'
             }
+            style={{ background: 'linear-gradient(180deg, #0f1724 0%, #0b1220 100%)' }}
           >
             {/* Header */}
-            <div className="bg-gradient-to-r from-sky-400 to-blue-600 text-white px-5 py-4 flex-shrink-0">
+            <div
+              className="text-white px-5 py-4 flex-shrink-0"
+              style={{ background: 'linear-gradient(135deg, #1a2332 0%, #0f1724 100%)', borderBottom: '1px solid rgba(247, 147, 26, 0.2)' }}
+            >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <span className="inline-block h-2.5 w-2.5 rounded-full bg-emerald-300 shadow-sm" />
+                  <span className="inline-block h-2.5 w-2.5 rounded-full bg-orange-500 shadow-lg shadow-orange-500/50" />
                   <div>
                     <div className="font-semibold leading-tight">EDEN</div>
-                    <div className="text-white/90 text-xs">
+                    <div className="text-gray-400 text-xs">
                       Empowering Decentralized Economic Networks
                     </div>
                   </div>
                 </div>
                 <button
                   onClick={() => setIsFullscreen((v) => !v)}
-                  className="rounded-lg px-3 py-1.5 bg-white/20 hover:bg-white/30 transition text-lg"
+                  className="rounded-lg px-3 py-1.5 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 transition text-lg"
                   title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
                 >
                   {isFullscreen ? '⤢' : '⛶'}
@@ -144,7 +149,7 @@ export default function EdenChatWidget() {
             </div>
 
             {/* Conversation */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4" style={{ background: '#0b1220' }}>
               {messages.map((m) => (
                 <div
                   key={m.id}
@@ -160,7 +165,7 @@ export default function EdenChatWidget() {
               {isLoading && (
                 <div className="flex justify-start">
                   <div className="bot-bubble">
-                    <p className="text-slate-500 text-sm">Typing...</p>
+                    <p className="text-gray-400 text-sm">Typing...</p>
                   </div>
                 </div>
               )}
@@ -168,26 +173,33 @@ export default function EdenChatWidget() {
             </div>
 
             {/* Input */}
-            <div className="p-4 bg-white border-t border-slate-200 flex-shrink-0">
-              <div className="flex items-center gap-2 bg-slate-50 rounded-xl border border-slate-200 px-3 py-2.5 shadow-sm">
+            <div
+              className="p-4 border-t flex-shrink-0"
+              style={{ background: '#0f1724', borderColor: 'rgba(247, 147, 26, 0.2)' }}
+            >
+              <div
+                className="flex items-center gap-2 rounded-xl border px-3 py-2.5"
+                style={{ background: '#1a2332', borderColor: 'rgba(247, 147, 26, 0.2)' }}
+              >
                 <input
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Ask me anything..."
-                  className="flex-1 bg-transparent outline-none text-slate-900 placeholder:text-slate-400 text-sm"
+                  className="flex-1 bg-transparent outline-none text-white placeholder:text-gray-500 text-sm"
                   disabled={isLoading}
                 />
                 <button
                   onClick={handleSend}
                   disabled={isLoading || !input.trim()}
-                  className="rounded-lg px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  className="rounded-lg px-4 py-2 text-sm font-medium text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  style={{ background: isLoading || !input.trim() ? '#555' : 'linear-gradient(135deg, #f7931a 0%, #ff9f3a 100%)' }}
                 >
                   Send
                 </button>
               </div>
-              <div className="text-[11px] text-slate-400 mt-2 text-center">
+              <div className="text-[11px] text-gray-500 mt-2 text-center">
                 Press Enter to send
               </div>
             </div>
