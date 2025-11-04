@@ -124,7 +124,7 @@ export default function EdenChatWidget() {
 
       {/* Chat Modal */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 w-96 h-[600px] bg-white rounded-xl shadow-2xl flex flex-col z-50 border border-green-100">
+        <div className="fixed bottom-24 right-6 w-96 h-[600px] bg-gray-50 text-gray-800 rounded-xl shadow-2xl flex flex-col z-50 border border-green-100">
           {/* Header */}
           <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-4 rounded-t-xl">
             <h2 className="font-bold text-lg">EDEN</h2>
@@ -132,15 +132,11 @@ export default function EdenChatWidget() {
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-100">
             {/* Messages list */}
             {messages.map((m) => (
               <div key={m.id} className={m.sender === 'eden' ? 'bot-bubble' : 'user-bubble'}>
-                <p
-                  className={`whitespace-pre-wrap leading-relaxed ${
-                    m.sender === 'eden' ? 'text-gray-800' : 'text-white'
-                  }`}
-                >
+                <p className={`whitespace-pre-wrap leading-relaxed ${m.sender === 'eden' ? 'text-gray-800' : 'text-white'}`}>
                   {m.sender === 'eden' ? formatBotText(m.text) : m.text}
                 </p>
               </div>

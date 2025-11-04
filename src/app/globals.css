@@ -29,3 +29,24 @@ body{
 }
 
 .accent{ color: var(--accent); }
+
+/* Eden chat theming */
+.eden-widget .bot-bubble {
+  background: #ffffff;           /* white bubble for bot */
+  color: #1f2937;                /* gray-800 text */
+  border: 1px solid #e5e7eb;     /* gray-200 border */
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  display: inline-block;
+  max-width: 85%;
+}
+.eden-widget .user-bubble {
+  background: #22c55e;           /* green-500 */
+  color: #ffffff;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  display: inline-block;
+  max-width: 85%;
+}
+.eden-widget .bot-bubble p { color: #1f2937; }  /* enforce readable grey */
+.eden-widget .user-bubble p { color: #ffffff; }
