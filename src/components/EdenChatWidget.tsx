@@ -106,7 +106,7 @@ export default function EdenChatWidget() {
   };
 
   return (
-    <>
+    <div className="eden-widget"> {/* ensure local color scope */}
       {/* Floating Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
@@ -136,7 +136,11 @@ export default function EdenChatWidget() {
             {/* Messages list */}
             {messages.map((m) => (
               <div key={m.id} className={m.sender === 'eden' ? 'bot-bubble' : 'user-bubble'}>
-                <p className="text-[15px] whitespace-pre-wrap leading-relaxed">
+                <p
+                  className={`whitespace-pre-wrap leading-relaxed ${
+                    m.sender === 'eden' ? 'text-gray-800' : 'text-white'
+                  }`}
+                >
                   {m.sender === 'eden' ? formatBotText(m.text) : m.text}
                 </p>
               </div>
@@ -157,18 +161,15 @@ export default function EdenChatWidget() {
 
           {/* Input */}
           <div className="border-t p-4 bg-white flex gap-2">
-            {/* --- HIGHLIGHTED INPUT SECTION START --- */}
             <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Ask me anything..."
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm text-gray-900"
-                disabled={isLoading}
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyPress}
+              placeholder="Ask me anything..."
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm text-gray-900 placeholder:text-gray-400"
+              disabled={isLoading}
             />
-
-            {/* --- HIGHLIGHTED INPUT SECTION END --- */}
             <button
               onClick={handleSend}
               disabled={isLoading || !input.trim()}
@@ -189,6 +190,6 @@ export default function EdenChatWidget() {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
