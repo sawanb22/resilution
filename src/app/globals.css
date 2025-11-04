@@ -50,3 +50,24 @@ body{
 }
 .eden-widget .bot-bubble p { color: #1f2937; }  /* enforce readable grey */
 .eden-widget .user-bubble p { color: #ffffff; }
+
+/* Light‑blue Eden theme */
+.eden-widget .bot-bubble {
+  background: #ffffff;           /* bot bubble */
+  color: #1f2937;                /* gray-800 */
+  border: 1px solid #e5e7eb;     /* gray-200 */
+  border-radius: 14px;
+  padding: 10px 14px;
+  max-width: 85%;
+  box-shadow: 0 1px 0 rgba(2, 132, 199, 0.08);
+}
+.eden-widget .user-bubble {
+  background: #3b82f6;           /* blue-500 */
+  color: #ffffff;
+  border-radius: 14px;
+  padding: 10px 14px;
+  max-width: 85%;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.12) inset;
+}
+.eden-widget .bot-bubble p { color: #1f2937; }
+.eden-widget .user-bubble p { color: #ffffff; }

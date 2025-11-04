@@ -1,191 +1,199 @@
-'use client';
-
-import React, { useState, useRef, useEffect } from 'react';
-import { Send, MessageCircle, X, Trash2 } from 'lucide-react';
+'use client'
+import React, { useEffect, useRef, useState } from 'react'
 
 interface Message {
-  id: string;
-  text: string;
-  sender: 'user' | 'eden';
-  timestamp: Date;
+  id: string
+  text: string
+  sender: 'user' | 'eden'
+  timestamp: Date
 }
 
 export default function EdenChatWidget() {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false)
+  const [isFullscreen, setIsFullscreen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: "👋 Hi! I'm EDEN, your guide to Resilution. Ask me anything about our platform!",
+      text: "👋 Hi!\nI'm EDEN, your guide to Resilution.\nAsk me anything about our platform!",
       sender: 'eden',
       timestamp: new Date(),
     },
-  ]);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  ])
+  const [input, setInput] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+
+  const formatBotText = (text: string) => {
+    if (!text) return ''
+    let t = text.replace(/\r\n/g, '\n')
+    t = t.replace(/\s*•\s*/g, '\n• ')
+    t = t.replace(/([.!?])\s+(?=[A-Z])/g, '$1\n')
+    t = t.replace(/\n{3,}/g, '\n\n')
+    return t.trim()
+  }
 
   const handleSend = async () => {
-    if (!input.trim()) return;
-    const userText = input;
-    setInput('');
-    setIsLoading(true);
+    if (!input.trim()) return
+    const userText = input
+    setInput('')
+
     setMessages((prev) => [
       ...prev,
       { id: String(Date.now()), text: userText, sender: 'user', timestamp: new Date() },
-    ]);
+    ])
+    setIsLoading(true)
 
     try {
-      // Use server proxy; no webhook URL in client
       const res = await fetch('/api/eden', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'sendMessage', message: userText }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || 'Upstream error');
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data?.error || 'Upstream error')
 
       const reply =
         data?.response ??
         data?.message ??
         data?.output ??
-        (typeof data === 'string' ? data : JSON.stringify(data));
+        (typeof data === 'string' ? data : JSON.stringify(data))
 
       setMessages((prev) => [
         ...prev,
         { id: String(Date.now() + 1), text: reply, sender: 'eden', timestamp: new Date() },
-      ]);
+      ])
     } catch {
       setMessages((prev) => [
         ...prev,
-        { id: String(Date.now() + 2), text: '❌ Sorry, I had trouble connecting. Please try again.', sender: 'eden', timestamp: new Date() },
-      ]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-
-  const clearHistory = () => {
-    if (confirm('Clear all messages?')) {
-      setMessages([
         {
-          id: '1',
-          text: "👋 Chat cleared! How can I help you now?",
+          id: String(Date.now() + 2),
+          text: '❌ Sorry, I had trouble connecting. Please try again.',
           sender: 'eden',
           timestamp: new Date(),
         },
-      ]);
+      ])
+    } finally {
+      setIsLoading(false)
     }
-  };
+  }
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
-
-  // Format EDEN text: normalize newlines, put • on new lines, and break long sentences
-  const formatBotText = (text: string) => {
-    if (!text) return '';
-    let t = text.replace(/\r\n/g, '\n');          // CRLF -> LF
-    t = t.replace(/Here’s how.*?works:/i, (m) => m + '\n'); // newline after “Here’s how…works:”
-    t = t.replace(/\s*•\s*/g, '\n• ');            // each • starts on a new line
-    t = t.replace(/([.!?])\s+(?=[A-Z])/g, '$1\n'); // sentence -> new line
-    t = t.replace(/\n{3,}/g, '\n\n');             // collapse extra blank lines
-    return t.trim();
-  };
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !isLoading) handleSend()
+  }
 
   return (
-    <div className="eden-widget"> {/* ensure local color scope */}
-      {/* Floating Button */}
+    <div className="eden-widget">
+      {/* Floating launcher button - always visible */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={`fixed bottom-6 right-6 w-14 h-14 bg-green-500 rounded-full flex items-center justify-center shadow-lg hover:bg-green-600 transition-all z-40 hover:scale-110 ${
-          !isOpen ? 'animate-bounce' : ''
-        }`}
-        aria-label="Open chat"
+        onClick={() => setIsOpen((v) => !v)}
+        className="fixed bottom-6 right-6 h-16 w-16 rounded-full shadow-xl focus:outline-none focus:ring-4 focus:ring-blue-300
+                   bg-gradient-to-br from-sky-400 to-blue-600 text-white text-2xl z-[100] transition-transform hover:scale-105"
+        aria-label={isOpen ? 'Close chat' : 'Open chat'}
+        title={isOpen ? 'Close' : 'Chat'}
       >
-        {isOpen ? (
-          React.createElement(X as any, { className: "text-white", size: 24 })
-        ) : (
-          React.createElement(MessageCircle as any, { className: "text-white", size: 24 })
-        )}
+        {isOpen ? '✕' : '💬'}
       </button>
 
-      {/* Chat Modal */}
-      {isOpen && (
-        <div className="fixed bottom-24 right-6 w-96 h-[600px] bg-gray-50 text-gray-800 rounded-xl shadow-2xl flex flex-col z-50 border border-green-100">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-4 rounded-t-xl">
-            <h2 className="font-bold text-lg">EDEN</h2>
-            <p className="text-xs opacity-90">Empowering Decentralized Economic Networks</p>
-          </div>
+      {/* Backdrop for fullscreen */}
+      {isOpen && isFullscreen && (
+        <div
+          className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[60]"
+          onClick={() => setIsFullscreen(false)}
+        />
+      )}
 
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-100">
-            {/* Messages list */}
-            {messages.map((m) => (
-              <div key={m.id} className={m.sender === 'eden' ? 'bot-bubble' : 'user-bubble'}>
-                <p className={`whitespace-pre-wrap leading-relaxed ${m.sender === 'eden' ? 'text-gray-800' : 'text-white'}`}>
-                  {m.sender === 'eden' ? formatBotText(m.text) : m.text}
-                </p>
-              </div>
-            ))}
-            {isLoading && (
-              <div className="flex justify-start">
-                <div className="bg-white border border-gray-200 px-4 py-2 rounded-lg">
-                  <div className="flex space-x-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+      {/* Chat window */}
+      {isOpen && (
+        <div
+          className={
+            isFullscreen
+              ? 'fixed inset-0 z-[70] flex items-center justify-center p-4'
+              : 'fixed bottom-24 right-6 z-[70]'
+          }
+        >
+          <div
+            className={
+              (isFullscreen ? 'h-[90vh] w-full max-w-3xl' : 'h-[600px] w-[400px]') +
+              ' flex flex-col rounded-2xl overflow-hidden shadow-2xl border border-sky-100 bg-white'
+            }
+          >
+            {/* Header */}
+            <div className="bg-gradient-to-r from-sky-400 to-blue-600 text-white px-5 py-4 flex-shrink-0">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="inline-block h-2.5 w-2.5 rounded-full bg-emerald-300 shadow-sm" />
+                  <div>
+                    <div className="font-semibold leading-tight">EDEN</div>
+                    <div className="text-white/90 text-xs">
+                      Empowering Decentralized Economic Networks
+                    </div>
                   </div>
                 </div>
+                <button
+                  onClick={() => setIsFullscreen((v) => !v)}
+                  className="rounded-lg px-3 py-1.5 bg-white/20 hover:bg-white/30 transition text-lg"
+                  title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+                >
+                  {isFullscreen ? '⤢' : '⛶'}
+                </button>
               </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
+            </div>
 
-          {/* Input */}
-          <div className="border-t p-4 bg-white flex gap-2">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyPress}
-              placeholder="Ask me anything..."
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm text-gray-900 placeholder:text-gray-400"
-              disabled={isLoading}
-            />
-            <button
-              onClick={handleSend}
-              disabled={isLoading || !input.trim()}
-              className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-            >
-              {React.createElement(Send as any, { size: 18 })}
-            </button>
-          </div>
+            {/* Conversation */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50">
+              {messages.map((m) => (
+                <div
+                  key={m.id}
+                  className={(m.sender === 'eden' ? 'justify-start' : 'justify-end') + ' flex'}
+                >
+                  <div className={m.sender === 'eden' ? 'bot-bubble' : 'user-bubble'}>
+                    <p className="whitespace-pre-wrap leading-relaxed text-sm">
+                      {m.sender === 'eden' ? formatBotText(m.text) : m.text}
+                    </p>
+                  </div>
+                </div>
+              ))}
+              {isLoading && (
+                <div className="flex justify-start">
+                  <div className="bot-bubble">
+                    <p className="text-slate-500 text-sm">Typing...</p>
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
 
-          {/* Clear Button */}
-          <div className="px-4 py-2 border-t bg-gray-50 rounded-b-xl">
-            <button
-              onClick={clearHistory}
-              className="w-full flex items-center justify-center gap-2 text-xs text-red-600 hover:bg-red-50 py-2 rounded transition-all"
-            >
-              {React.createElement(Trash2 as any, { size: 14 })} Clear Chat History
-            </button>
+            {/* Input */}
+            <div className="p-4 bg-white border-t border-slate-200 flex-shrink-0">
+              <div className="flex items-center gap-2 bg-slate-50 rounded-xl border border-slate-200 px-3 py-2.5 shadow-sm">
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Ask me anything..."
+                  className="flex-1 bg-transparent outline-none text-slate-900 placeholder:text-slate-400 text-sm"
+                  disabled={isLoading}
+                />
+                <button
+                  onClick={handleSend}
+                  disabled={isLoading || !input.trim()}
+                  className="rounded-lg px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                >
+                  Send
+                </button>
+              </div>
+              <div className="text-[11px] text-slate-400 mt-2 text-center">
+                Press Enter to send
+              </div>
+            </div>
           </div>
         </div>
       )}
     </div>
-  );
+  )
 }
