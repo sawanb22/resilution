@@ -21,7 +21,22 @@ export default function EdenChatWidget() {
   ])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [sessionId, setSessionId] = useState<string>('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  // Generate or retrieve session ID on mount
+  useEffect(() => {
+    const getOrCreateSessionId = () => {
+      let sid = localStorage.getItem('eden_session_id')
+      if (!sid) {
+        sid = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
+        localStorage.setItem('eden_session_id', sid)
+      }
+      return sid
+    }
+    setSessionId(getOrCreateSessionId())
+  }, [])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -51,7 +66,11 @@ export default function EdenChatWidget() {
       const res = await fetch('/api/eden', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'sendMessage', message: userText }),
+        body: JSON.stringify({ 
+          action: 'sendMessage', 
+          message: userText,
+          sessionId: sessionId // Send current session ID
+        }),
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data?.error || 'Upstream error')
@@ -83,6 +102,29 @@ export default function EdenChatWidget() {
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !isLoading) handleSend()
+  }
+
+  const handleNewChat = () => {
+    // Step 1: Clear UI messages
+    setMessages([
+      {
+        id: '1',
+        text: "👋 Hi!\nI'm EDEN, your guide to Resilution.\nAsk me anything about our platform!",
+        sender: 'eden',
+        timestamp: new Date(),
+      },
+    ])
+    
+    // Step 2: Delete old session ID from localStorage
+    localStorage.removeItem('eden_session_id')
+    
+    // Step 3: Generate new session ID
+    const newSid = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
+    localStorage.setItem('eden_session_id', newSid)
+    setSessionId(newSid)
+    
+    // Step 4: Focus input (UX improvement)
+    setTimeout(() => inputRef.current?.focus(), 100)
   }
 
   return (
@@ -138,13 +180,22 @@ export default function EdenChatWidget() {
                     </div>
                   </div>
                 </div>
-                <button
-                  onClick={() => setIsFullscreen((v) => !v)}
-                  className="rounded-lg px-3 py-1.5 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 transition text-lg"
-                  title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
-                >
-                  {isFullscreen ? '⤢' : '⛶'}
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleNewChat}
+                    className="rounded-lg px-3 py-1.5 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 transition text-xs font-medium"
+                    title="Start a new conversation"
+                  >
+                    New Chat
+                  </button>
+                  <button
+                    onClick={() => setIsFullscreen((v) => !v)}
+                    className="rounded-lg px-3 py-1.5 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 transition text-lg"
+                    title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+                  >
+                    {isFullscreen ? '⤢' : '⛶'}
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -182,6 +233,7 @@ export default function EdenChatWidget() {
                 style={{ background: '#1a2332', borderColor: 'rgba(247, 147, 26, 0.2)' }}
               >
                 <input
+                  ref={inputRef}
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
