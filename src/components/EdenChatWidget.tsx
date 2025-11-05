@@ -52,6 +52,35 @@ export default function EdenChatWidget() {
     return t.trim()
   }
 
+  // Convert URLs in text to clickable links while preserving the rest as plain text
+  const linkify = (input: string): React.ReactNode[] => {
+    const nodes: React.ReactNode[] = []
+    if (!input) return nodes
+    const urlRegex = /(https?:\/\/[^\s<>\)]+)(?![^<]*>)/g
+    let lastIndex = 0
+    let match: RegExpExecArray | null
+    let k = 0
+    while ((match = urlRegex.exec(input)) !== null) {
+      const url = match[0]
+      const start = match.index
+      if (start > lastIndex) nodes.push(input.slice(lastIndex, start))
+      nodes.push(
+        <a
+          key={`link-${k++}`}
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[var(--brand)] underline underline-offset-2 decoration-[var(--brand)] hover:text-[var(--brand-600)] transition-colors break-all"
+        >
+          {url}
+        </a>
+      )
+      lastIndex = start + url.length
+    }
+    if (lastIndex < input.length) nodes.push(input.slice(lastIndex))
+    return nodes
+  }
+
   const handleSend = async () => {
     if (!input.trim()) return
     const userText = input
@@ -123,17 +152,33 @@ export default function EdenChatWidget() {
 
   return (
     <div className="eden-widget">
-      {/* Floating launcher button - charcoal disc with green ring */}
-      <button
-        onClick={() => setIsOpen((v) => !v)}
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-full bg-[var(--bg-base)] text-[var(--txt-primary)] z-[100]
-                   shadow-[inset_0_0_0_1px_rgba(184,255,77,.55)] hover:shadow-[inset_0_0_0_1px_rgba(184,255,77,.75),0_0_16px_rgba(184,255,77,.12)]
-                   transition-[box-shadow,transform] duration-150 ease-eden-out hover:scale-105 focus:outline-none focus-visible:eden-focus"
-        aria-label={isOpen ? 'Close chat' : 'Open chat'}
-        title={isOpen ? 'Close' : 'Chat'}
-      >
-        <span className="text-lg">{isOpen ? '✕' : '💬'}</span>
-      </button>
+      {/* Floating launcher with helper label */}
+      <div className="fixed bottom-6 right-6 z-[100] flex items-center gap-3">
+        {/* Helper pill shown when widget is closed */}
+        {!isOpen && (
+          <button
+            onClick={() => setIsOpen(true)}
+            className="rounded-full px-3 py-1 text-[13px] font-medium bg-[var(--bg-panel)] text-[var(--txt-primary)]
+                       border border-[var(--border-accent)] shadow-[var(--glow)] hover:shadow-[inset_0_0_0_1px_rgba(184,255,77,.55),0_0_24px_rgba(184,255,77,.12)]
+                       transition-[box-shadow] duration-150 ease-eden-out"
+            aria-label="Open EDEN chat"
+            title="Open EDEN chat"
+          >
+            Need help?
+          </button>
+        )}
+
+        <button
+          onClick={() => setIsOpen((v) => !v)}
+          className="h-14 w-14 rounded-full bg-[var(--bg-base)] text-[var(--txt-primary)]
+                     shadow-[inset_0_0_0_1px_rgba(184,255,77,.55)] hover:shadow-[inset_0_0_0_1px_rgba(184,255,77,.75),0_0_16px_rgba(184,255,77,.12)]
+                     transition-[box-shadow,transform] duration-150 ease-eden-out hover:scale-105 focus:outline-none focus-visible:eden-focus"
+          aria-label={isOpen ? 'Close chat' : 'Open chat'}
+          title={isOpen ? 'Close' : 'Chat'}
+        >
+          <span className="text-lg">{isOpen ? '✕' : '💬'}</span>
+        </button>
+      </div>
 
       {/* Backdrop for fullscreen */}
       {isOpen && isFullscreen && (
@@ -154,7 +199,7 @@ export default function EdenChatWidget() {
         >
           <div
             className={
-              (isFullscreen ? 'h-[90vh] w-full max-w-3xl' : 'h-[600px] w-[400px]') +
+              (isFullscreen ? 'h-[90vh] w-full max-w-3xl' : 'h-[600px] w-[412px]') +
               ' flex flex-col rounded-eden overflow-hidden shadow-[var(--glow)] bg-[var(--bg-panel)] text-[var(--txt-primary)]'
             }
           >
@@ -199,7 +244,7 @@ export default function EdenChatWidget() {
               {messages.map((m, idx) => (
                 <div key={m.id} className={(m.sender === 'eden' ? 'justify-start' : 'justify-end') + ' flex'}>
                   <Bubble role={m.sender === 'eden' ? 'assistant' : 'user'} isFirstWelcome={idx === 0 && m.sender === 'eden'}>
-                    <p className="whitespace-pre-wrap">{m.sender === 'eden' ? formatBotText(m.text) : m.text}</p>
+                    <p className="whitespace-pre-wrap break-words">{linkify(m.sender === 'eden' ? formatBotText(m.text) : m.text)}</p>
                   </Bubble>
                 </div>
               ))}
