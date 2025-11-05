@@ -1,12 +1,3 @@
-module.exports = {
-  content: [
-    './src/**/*.{js,ts,jsx,tsx}',
-  ],
-  theme: {
-    extend: {},
-  },
-  plugins: [],
-}
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
@@ -16,26 +7,19 @@ module.exports = {
   ],
   theme: {
     extend: {
-      colors: {
-        bitcoin: {
-          orange: '#F7931A',
-          dark: '#0A0E27',
-          gray: '#1A1F3A',
-        },
+      keyframes: {
+        slideUp: { '0%': { transform:'translateY(8px)', opacity:'0' }, '100%': { transform:'translateY(0)', opacity:'1' } },
+        scaleIn: { '0%': { transform:'scale(.98)', opacity:'0' }, '100%': { transform:'scale(1)', opacity:'1' } },
       },
       animation: {
-        'fade-in-up': 'fadeInUp 0.8s ease-out',
-        'fade-in': 'fadeIn 0.8s ease-out',
+        slideUp: 'slideUp 180ms ease-out',
+        scaleIn: 'scaleIn 220ms ease-out',
       },
-      keyframes: {
-        fadeInUp: {
-          '0%': { opacity: '0', transform: 'translateY(30px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
-        },
-        fadeIn: {
-          '0%': { opacity: '0' },
-          '100%': { opacity: '1' },
-        },
+      transitionTimingFunction: {
+        'eden-out': 'cubic-bezier(0.2,0.0,0.2,1)',
+      },
+      borderRadius: {
+        eden: '16px',
       },
     },
   },

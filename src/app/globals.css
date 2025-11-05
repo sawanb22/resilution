@@ -3,10 +3,19 @@
 @tailwind utilities;
 
 :root{
-  --bg: #0b1220;
-  --card: #0f1724;
-  --muted: #9ca3af;
-  --accent: #f7931a;
+  --bg-base:#0D0F12;          /* page dark */ 
+  --bg-panel:#121720;         /* widget surface */
+  --txt-primary:#FFFFFF;      /* primary text */
+  --txt-secondary:#B6C2CF;    /* secondary */
+  --brand:#B8FF4D;            /* neon green */
+  --brand-600:#A5F23F;        /* hover */
+  --border-muted:#253031;     /* inputs */
+  --border-accent:#294226;    /* subtle green border */
+  --border-header:#1E2A1B;    /* header inner border */
+  --bubble-ai:#0F141C;        /* assistant */
+  --bubble-user:#17202B;      /* user */
+  --shadow-s:0 1px 1px rgba(0,0,0,.35),0 6px 16px rgba(0,0,0,.35);
+  --glow:0 0 0 1px rgba(184,255,77,.18),0 0 24px rgba(184,255,77,.10);
 }
 
 html,body,#root{
@@ -14,7 +23,7 @@ html,body,#root{
 }
 
 body{
-  @apply bg-[var(--bg)] text-white antialiased;
+  @apply bg-[var(--bg-base)] text-white antialiased;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
 }
 
@@ -28,25 +37,27 @@ body{
   @apply rounded-lg p-6;
 }
 
-.accent{ color: var(--accent); }
+.accent{ color: var(--brand); }
 
-/* Dark themed Eden chat widget matching Bitcoin landing page */
-.eden-widget .bot-bubble {
-  background: linear-gradient(135deg, #0f1724 0%, #1a2332 100%);
-  color: #e5e7eb;
-  border: 1px solid rgba(247, 147, 26, 0.2);
-  border-radius: 14px;
-  padding: 12px 16px;
-  max-width: 80%;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+/* Header gradient + inner border + outer glow */
+.eden-header {
+  background: linear-gradient(180deg,#0F141C 0%,#0B0E12 100%);
+  box-shadow: inset 0 0 0 1px var(--border-header), var(--glow);
 }
-.eden-widget .user-bubble {
-  background: linear-gradient(135deg, #f7931a 0%, #ff9f3a 100%);
-  color: #ffffff;
-  border-radius: 14px;
-  padding: 12px 16px;
-  max-width: 80%;
-  box-shadow: 0 2px 8px rgba(247, 147, 26, 0.4);
+
+/* Input focus ring: 1.5px + 8px spread */
+.eden-focus {
+  box-shadow: 0 0 0 1.5px var(--brand), 0 0 0 8px rgba(184,255,77,.12);
 }
-.eden-widget .bot-bubble p { color: #e5e7eb; }
-.eden-widget .user-bubble p { color: #ffffff; font-weight: 500; }
+
+/* Optional: subtle green glow for first welcome bubble */
+.eden-welcome-glow {
+  box-shadow: var(--glow);
+}
+
+/* Online status dot */
+.eden-status-dot {
+  width: 8px; height: 8px; border-radius: 9999px;
+  background: var(--brand);
+  box-shadow: 0 0 0 2px rgba(184,255,77,.40);
+}
