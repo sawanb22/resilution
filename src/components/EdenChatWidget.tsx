@@ -236,13 +236,17 @@ export default function EdenChatWidget() {
 
         <button
           onClick={() => setIsOpen((v) => !v)}
-          className="h-14 w-14 rounded-full bg-[var(--bg-base)] text-[var(--txt-primary)]
-                     shadow-[inset_0_0_0_1px_rgba(184,255,77,.55)] hover:shadow-[inset_0_0_0_1px_rgba(184,255,77,.75),0_0_16px_rgba(184,255,77,.12)]
+          className="h-14 w-14 rounded-full bg-[var(--brand)] text-[var(--brand-text)]
+                     shadow-[inset_0_0_0_1px_rgba(0,0,0,.15)] hover:shadow-[inset_0_0_0_1px_rgba(0,0,0,.25),0_0_12px_rgba(200,255,128,.18)]
                      transition-[box-shadow,transform] duration-150 ease-eden-out hover:scale-105 focus:outline-none focus-visible:eden-focus"
           aria-label={isOpen ? 'Close chat' : 'Open chat'}
           title={isOpen ? 'Close' : 'Chat'}
         >
-          <span className="text-lg">{isOpen ? '✕' : '💬'}</span>
+          {isOpen ? (
+            <span className="text-xl leading-none">✕</span>
+          ) : (
+            <img src="/chat-widget/chat-bubble.svg" alt="Chat" className="w-6 h-6 mx-auto" aria-hidden="true" />
+          )}
         </button>
       </div>
 
@@ -301,9 +305,13 @@ export default function EdenChatWidget() {
                     title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
                     aria-label="Fullscreen"
                   >
-                    <svg width="16" height="16" viewBox="0 0 24 24" className="text-[var(--txt-primary)]" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5" />
-                    </svg>
+                    <img
+                      src="/chat-widget/fullscreen.svg"
+                      alt={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+                      width={16}
+                      height={16}
+                      className="w-4 h-4"
+                    />
                   </button>
                 </div>
               </div>
