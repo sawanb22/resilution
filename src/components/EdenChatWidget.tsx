@@ -8,21 +8,22 @@ interface Message {
   sender: Sender
   timestamp: Date
 }
+type Role = 'Investor' | 'Business Owner' | 'VC' | 'Just Curious'
 
 export default function EdenChatWidget() {
   const [isOpen, setIsOpen] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      text: "👋 Hi!\nI'm EDEN, your guide to Resilution.\nAsk me anything about our platform!",
-      sender: 'eden',
-      timestamp: new Date(),
-    },
+    // Regular messages will populate after onboarding
   ])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [sessionId, setSessionId] = useState<string>('')
+  const [needsOnboarding, setNeedsOnboarding] = useState<boolean>(true)
+  const [firstName, setFirstName] = useState('')
+  const [email, setEmail] = useState('')
+  const [role, setRole] = useState<Role | ''>('')
+  const [profile, setProfile] = useState<{ firstName?: string; email?: string; role?: Role }>({})
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -37,6 +38,25 @@ export default function EdenChatWidget() {
       return sid
     }
     setSessionId(getOrCreateSessionId())
+
+    // Restore onboarding status if previously completed in this browser
+    const onboarded = localStorage.getItem('eden_onboarded') === 'true'
+    if (onboarded) {
+      setNeedsOnboarding(false)
+      try {
+        const saved = JSON.parse(localStorage.getItem('eden_profile') || '{}')
+        if (saved?.firstName) setProfile(saved)
+      } catch {}
+      // Seed a greeting message for existing users
+      setMessages([
+        {
+          id: 'hello',
+          text: `👋 Hi${profile?.firstName ? `, ${profile.firstName}` : ''}! I'm EDEN. Ask me anything about our platform!`,
+          sender: 'eden',
+          timestamp: new Date(),
+        },
+      ])
+    }
   }, [])
 
   useEffect(() => {
@@ -50,6 +70,30 @@ export default function EdenChatWidget() {
     t = t.replace(/([.!?])\s+(?=[A-Z])/g, '$1\n')
     t = t.replace(/\n{3,}/g, '\n\n')
     return t.trim()
+  }
+
+  // Single-flight send with one automatic retry for transient errors/timeouts
+  const sendToEden = async (msg: string): Promise<string> => {
+    const attempt = async () => {
+      const res = await fetch('/api/eden', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'sendMessage', message: msg, sessionId, metadata: profile }),
+      })
+      const data = await res.json().catch(() => ({} as any))
+      if (!res.ok) throw new Error((data as any)?.error || 'Upstream error')
+      const reply =
+        (data as any)?.response ??
+        (data as any)?.message ??
+        (data as any)?.output ??
+        (typeof data === 'string' ? data : JSON.stringify(data))
+      return reply
+    }
+    try { return await attempt() } catch (e) {
+      // brief backoff then one retry
+      await new Promise(r => setTimeout(r, 1200))
+      return await attempt()
+    }
   }
 
   // Convert URLs in text to clickable links while preserving the rest as plain text
@@ -93,24 +137,7 @@ export default function EdenChatWidget() {
     setIsLoading(true)
 
     try {
-      const res = await fetch('/api/eden', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'sendMessage',
-          message: userText,
-          sessionId,
-        }),
-      })
-      const data = await res.json().catch(() => ({} as any))
-      if (!res.ok) throw new Error((data as any)?.error || 'Upstream error')
-
-      const reply =
-        (data as any)?.response ??
-        (data as any)?.message ??
-        (data as any)?.output ??
-        (typeof data === 'string' ? data : JSON.stringify(data))
-
+      const reply = await sendToEden(userText)
       setMessages((prev) => [
         ...prev,
         { id: String(Date.now() + 1), text: reply, sender: 'eden', timestamp: new Date() },
@@ -135,19 +162,58 @@ export default function EdenChatWidget() {
   }
 
   const handleNewChat = () => {
-    setMessages([
-      {
-        id: '1',
-        text: "👋 Hi!\nI'm EDEN, your guide to Resilution.\nAsk me anything about our platform!",
-        sender: 'eden',
-        timestamp: new Date(),
-      },
-    ])
+    setMessages([])
     localStorage.removeItem('eden_session_id')
+    localStorage.removeItem('eden_onboarded')
+    localStorage.removeItem('eden_profile')
+    setNeedsOnboarding(true)
+    setFirstName('')
+    setEmail('')
+    setRole('')
     const newSid = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
     localStorage.setItem('eden_session_id', newSid)
     setSessionId(newSid)
     setTimeout(() => inputRef.current?.focus(), 100)
+  }
+
+  const emailOk = (e: string) => /^(?:[a-zA-Z0-9_'^&\/+{}!#$%*=?`{|}~.-]+)@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/.test(e)
+  const roleOk = (r: any): r is Role => ['Investor','Business Owner','VC','Just Curious'].includes(r)
+  const formValid = firstName.trim().length > 0 && emailOk(email) && roleOk(role)
+
+  const submitOnboarding = async () => {
+    if (!formValid || isLoading) return
+    const payload = { firstName: firstName.trim(), email: email.trim(), role: role as Role }
+    setProfile(payload)
+    localStorage.setItem('eden_profile', JSON.stringify(payload))
+    localStorage.setItem('eden_onboarded', 'true')
+
+    // Construct user's first message with the form details
+    const onboardingUserText = `Onboarding details:\nFirst name: ${payload.firstName}\nEmail: ${payload.email}\nRole: ${payload.role}`
+
+    // Hide the form and append the user message
+    setNeedsOnboarding(false)
+    setMessages((prev) => ([
+      ...prev,
+      { id: String(Date.now()), text: onboardingUserText, sender: 'user', timestamp: new Date() },
+    ]))
+
+    // Send to backend and wait for assistant reply
+    setIsLoading(true)
+    try {
+      const reply = await sendToEden(onboardingUserText)
+      setMessages((prev) => ([
+        ...prev,
+        { id: String(Date.now() + 1), text: reply, sender: 'eden', timestamp: new Date() },
+      ]))
+    } catch {
+      setMessages((prev) => ([
+        ...prev,
+        { id: String(Date.now() + 2), text: '❌ Sorry, I had trouble connecting. Please try again.', sender: 'eden', timestamp: new Date() },
+      ]))
+    } finally {
+      setIsLoading(false)
+      setTimeout(() => inputRef.current?.focus(), 120)
+    }
   }
 
   return (
@@ -239,8 +305,54 @@ export default function EdenChatWidget() {
               </div>
             </header>
 
-            {/* Conversation */}
+            {/* Conversation / Onboarding */}
             <div className="flex-1 overflow-y-auto px-3 pt-3 pb-3 space-y-3">
+              {needsOnboarding && (
+                <div className="flex justify-start">
+                  <div className="max-w-[92%] rounded-eden px-4 py-4 text-[16px] leading-[1.6] bg-[var(--bubble-ai)] border border-[var(--border-muted)] text-[var(--txt-primary)] shadow-[var(--shadow-s)] eden-welcome-glow animate-scaleIn">
+                    <div className="space-y-3">
+                      <p className="whitespace-pre-wrap">{"Hi! 👋 Welcome to Resilution. I'm Eden, your guide here.\n\nBefore we get started, could you share:"}</p>
+                      <div className="mt-2 grid gap-3">
+                        <label className="text-[14px] text-[var(--txt-secondary)]">Your first name</label>
+                        <input
+                          value={firstName}
+                          onChange={(e)=>setFirstName(e.target.value)}
+                          placeholder="First name"
+                          className="bg-transparent border border-[var(--border-muted)] rounded-eden px-3 py-2 outline-none text-[var(--txt-primary)] placeholder-[var(--txt-secondary)] focus:eden-focus"
+                        />
+                        <label className="text-[14px] text-[var(--txt-secondary)] mt-2">Your email</label>
+                        <input
+                          value={email}
+                          onChange={(e)=>setEmail(e.target.value)}
+                          placeholder="you@example.com"
+                          type="email"
+                          className={`bg-transparent border rounded-eden px-3 py-2 outline-none text-[var(--txt-primary)] placeholder-[var(--txt-secondary)] focus:eden-focus ${email.length? (emailOk(email)?'border-[var(--border-muted)]':'border-red-500/60'):'border-[var(--border-muted)]'}`}
+                        />
+                        <label className="text-[14px] text-[var(--txt-secondary)] mt-2">Which best describes you?</label>
+                        <div className="grid grid-cols-2 gap-2">
+                          {(['Investor','Business Owner','VC','Just Curious'] as Role[]).map((r)=> (
+                            <button key={r}
+                              type="button"
+                              onClick={()=>setRole(r)}
+                              className={`rounded-xl px-3 py-2 text-sm border transition-colors duration-150 ${role===r? 'bg-[var(--brand)] text-[var(--bg-base)] border-transparent':'bg-[var(--bubble-ai)] text-[var(--txt-primary)] border-[var(--border-muted)] hover:border-[var(--border-accent)]'}`}
+                            >{r}</button>
+                          ))}
+                        </div>
+                        <p className="mt-2">{"Thanks! Let's get you started. ✨"}</p>
+                        <div className="pt-2">
+                          <button
+                            onClick={submitOnboarding}
+                            disabled={!formValid || isLoading}
+                            className="rounded-xl px-4 py-2 text-[14px] font-semibold bg-[var(--brand)] text-[var(--bg-base)] hover:bg-[var(--brand-600)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-150 ease-eden-out"
+                          >
+                            Submit
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
               {messages.map((m, idx) => (
                 <div key={m.id} className={(m.sender === 'eden' ? 'justify-start' : 'justify-end') + ' flex'}>
                   <Bubble role={m.sender === 'eden' ? 'assistant' : 'user'} isFirstWelcome={idx === 0 && m.sender === 'eden'}>
@@ -256,39 +368,41 @@ export default function EdenChatWidget() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input */}
-            <div className="px-3 pb-3 flex-shrink-0">
-              <form onSubmit={(e) => { e.preventDefault(); if (!isLoading) handleSend(); }}>
-                <div className="flex items-center gap-2 bg-[var(--bubble-ai)] border border-[var(--border-muted)] rounded-eden px-3 py-2 focus-within:eden-focus transition-shadow duration-150 ease-eden-out">
-                  <input
-                    ref={inputRef}
-                    type="text"
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder="Type your message…"
-                    className="flex-1 bg-transparent outline-none text-[var(--txt-primary)] placeholder-[var(--txt-secondary)] text-[16px] leading-[1.6]"
-                    disabled={isLoading}
-                  />
-                  <button
-                    type="submit"
-                    disabled={isLoading || !input.trim()}
-                    className="rounded-xl px-4 py-2 text-[14px] md:text-[15px] font-semibold bg-[var(--brand)] text-[var(--bg-base)]
-                               hover:bg-[var(--brand-600)] disabled:opacity-40 transition-colors duration-150 ease-eden-out focus:outline-none focus-visible:eden-focus"
-                    aria-label="Send"
-                    title="Send"
-                  >
-                    <span className="inline-flex items-center gap-2">
-                      <svg width="16" height="16" viewBox="0 0 24 24" className="text-[var(--bg-base)]" fill="currentColor">
-                        <path d="M2 21l21-9L2 3v7l15 2-15 2z" />
-                      </svg>
-                      Send
-                    </span>
-                  </button>
-                </div>
-                <div className="text-[11px] text-[var(--txt-secondary)] mt-2 text-center">Press Enter to send</div>
-              </form>
-            </div>
+            {/* Input - hidden until onboarding is complete */}
+            {!needsOnboarding && (
+              <div className="px-3 pb-3 flex-shrink-0">
+                <form onSubmit={(e) => { e.preventDefault(); if (!isLoading) handleSend(); }}>
+                  <div className="flex items-center gap-2 bg-[var(--bubble-ai)] border border-[var(--border-muted)] rounded-eden px-3 py-2 focus-within:eden-focus transition-shadow duration-150 ease-eden-out">
+                    <input
+                      ref={inputRef}
+                      type="text"
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      placeholder="Type your message…"
+                      className="flex-1 bg-transparent outline-none text-[var(--txt-primary)] placeholder-[var(--txt-secondary)] text-[16px] leading-[1.6]"
+                      disabled={isLoading}
+                    />
+                    <button
+                      type="submit"
+                      disabled={isLoading || !input.trim()}
+                      className="rounded-xl px-4 py-2 text-[14px] md:text-[15px] font-semibold bg-[var(--brand)] text-[var(--bg-base)]
+                                 hover:bg-[var(--brand-600)] disabled:opacity-40 transition-colors duration-150 ease-eden-out focus:outline-none focus-visible:eden-focus"
+                      aria-label="Send"
+                      title="Send"
+                    >
+                      <span className="inline-flex items-center gap-2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" className="text-[var(--bg-base)]" fill="currentColor">
+                          <path d="M2 21l21-9L2 3v7l15 2-15 2z" />
+                        </svg>
+                        Send
+                      </span>
+                    </button>
+                  </div>
+                  <div className="text-[11px] text-[var(--txt-secondary)] mt-2 text-center">Press Enter to send</div>
+                </form>
+              </div>
+            )}
           </div>
         </div>
       )}

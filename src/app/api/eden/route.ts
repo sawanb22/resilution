@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const WEBHOOK_URL = process.env.EDEN_WEBHOOK_URL!; // Chat Trigger URL ending with /chat
+const TIMEOUT_MS = Number(process.env.EDEN_TIMEOUT_MS || 45000);
 
 function createSessionId() {
   return globalThis.crypto?.randomUUID?.() ?? String(Date.now());
@@ -20,12 +21,12 @@ export async function POST(req: NextRequest) {
     const url = new URL(WEBHOOK_URL);
     url.searchParams.set('action', action);
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
     const upstream = await fetch(url.toString(), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json, text/plain, */*' },
       body: JSON.stringify({ chatInput, sessionId, metadata }),
       signal: controller.signal,
     });
