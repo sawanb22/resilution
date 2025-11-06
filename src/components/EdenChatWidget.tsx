@@ -260,12 +260,16 @@ export default function EdenChatWidget() {
           className={
             isFullscreen
               ? 'fixed inset-0 z-[70] flex items-center justify-center p-4'
-              : 'fixed bottom-24 right-6 z-[70]'
+              : 'fixed bottom-24 right-4 sm:right-6 z-[70]'
           }
         >
           <div
             className={
-              (isFullscreen ? 'h-[90vh] w-full max-w-3xl' : 'h-[600px] w-[412px]') +
+              (isFullscreen
+                ? 'h-[90vh] w-full max-w-3xl'
+                : `${needsOnboarding
+                    ? 'h-[clamp(520px,85vh,860px)]'
+                    : 'h-[clamp(520px,85vh,860px)]'} w-[clamp(300px,calc(100vw-16px),440px)]`) +
               ' flex flex-col rounded-eden overflow-hidden shadow-[var(--glow)] bg-[var(--bg-panel)] text-[var(--txt-primary)]'
             }
           >
@@ -283,7 +287,7 @@ export default function EdenChatWidget() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handleNewChat}
-                    className="rounded-xl px-3.5 py-2 text-[14px] md:text-[15px] font-semibold bg-[var(--brand)] text-[var(--bg-base)]
+                    className="rounded-eden px-3.5 py-2 text-[14px] md:text-[15px] font-semibold bg-[var(--brand)] text-[var(--bg-base)]
                                hover:bg-[var(--brand-600)] disabled:opacity-40 transition-colors duration-150 ease-eden-out focus:outline-none focus-visible:eden-focus"
                     title="Start a new conversation"
                   >
@@ -308,7 +312,7 @@ export default function EdenChatWidget() {
             {/* Conversation / Onboarding */}
             <div className="flex-1 overflow-y-auto px-3 pt-3 pb-3 space-y-3">
               {needsOnboarding && (
-                <div className="flex justify-start">
+                <div className="flex justify-center">
                   <div className="max-w-[92%] rounded-eden px-4 py-4 text-[16px] leading-[1.6] bg-[var(--bubble-ai)] border border-[var(--border-muted)] text-[var(--txt-primary)] shadow-[var(--shadow-s)] eden-welcome-glow animate-scaleIn">
                     <div className="space-y-3">
                       <p className="whitespace-pre-wrap">{"Hi! 👋 Welcome to Resilution. I'm Eden, your guide here.\n\nBefore we get started, could you share:"}</p>
@@ -334,16 +338,16 @@ export default function EdenChatWidget() {
                             <button key={r}
                               type="button"
                               onClick={()=>setRole(r)}
-                              className={`rounded-xl px-3 py-2 text-sm border transition-colors duration-150 ${role===r? 'bg-[var(--brand)] text-[var(--bg-base)] border-transparent':'bg-[var(--bubble-ai)] text-[var(--txt-primary)] border-[var(--border-muted)] hover:border-[var(--border-accent)]'}`}
+                              className={`rounded-eden px-3 py-2 text-sm border transition-colors duration-150 ${role===r? 'bg-[var(--brand)] text-[var(--bg-base)] border-transparent':'bg-[var(--bubble-ai)] text-[var(--txt-primary)] border-[var(--border-muted)] hover:border-[var(--border-accent)]'}`}
                             >{r}</button>
                           ))}
                         </div>
                         <p className="mt-2">{"Thanks! Let's get you started. ✨"}</p>
-                        <div className="pt-2">
+                        <div className="pt-2 flex justify-center">
                           <button
                             onClick={submitOnboarding}
                             disabled={!formValid || isLoading}
-                            className="rounded-xl px-4 py-2 text-[14px] font-semibold bg-[var(--brand)] text-[var(--bg-base)] hover:bg-[var(--brand-600)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-150 ease-eden-out"
+                            className="rounded-eden px-4 py-2 text-[14px] font-semibold bg-[var(--brand)] text-[var(--bg-base)] hover:bg-[var(--brand-600)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-150 ease-eden-out"
                           >
                             Submit
                           </button>
@@ -386,7 +390,7 @@ export default function EdenChatWidget() {
                     <button
                       type="submit"
                       disabled={isLoading || !input.trim()}
-                      className="rounded-xl px-4 py-2 text-[14px] md:text-[15px] font-semibold bg-[var(--brand)] text-[var(--bg-base)]
+                      className="rounded-eden px-4 py-2 text-[14px] md:text-[15px] font-semibold bg-[var(--brand)] text-[var(--bg-base)]
                                  hover:bg-[var(--brand-600)] disabled:opacity-40 transition-colors duration-150 ease-eden-out focus:outline-none focus-visible:eden-focus"
                       aria-label="Send"
                       title="Send"

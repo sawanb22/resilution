@@ -5,17 +5,19 @@
 :root{
   --bg-base:#0D0F12;          /* page dark */ 
   --bg-panel:#121720;         /* widget surface */
+  --header-bg:#0C1016;        /* header background */
   --txt-primary:#FFFFFF;      /* primary text */
-  --txt-secondary:#B6C2CF;    /* secondary */
-  --brand:#B8FF4D;            /* neon green */
-  --brand-600:#A5F23F;        /* hover */
-  --border-muted:#253031;     /* inputs */
-  --border-accent:#294226;    /* subtle green border */
-  --border-header:#1E2A1B;    /* header inner border */
+  --txt-secondary:#B9B9B9;    /* secondary */
+  --brand:#C8FF80;            /* neon green (design) */
+  --brand-text:#000000;       /* brand button text */
+  --brand-600:#B9F56B;        /* hover (approx) */
+  --border-muted:#303742;     /* inputs/borders */
+  --border-accent:#303742;    /* subtle border */
   --bubble-ai:#0F141C;        /* assistant */
-  --bubble-user:#17202B;      /* user */
+  --bubble-user:#0F141C;      /* user */
   --shadow-s:0 1px 1px rgba(0,0,0,.35),0 6px 16px rgba(0,0,0,.35);
-  --glow:0 0 0 1px rgba(184,255,77,.18),0 0 24px rgba(184,255,77,.10);
+  /* Updated glow to match brand (rgb 200,255,128) */
+  --glow:0 0 0 1px rgba(200,255,128,.18),0 0 24px rgba(200,255,128,.10);
 }
 
 html,body,#root{
@@ -41,8 +43,8 @@ body{
 
 /* Header gradient + inner border + outer glow */
 .eden-header {
-  background: linear-gradient(180deg,#0F141C 0%,#0B0E12 100%);
-  box-shadow: inset 0 0 0 1px var(--border-header), var(--glow);
+  background: var(--header-bg);
+  box-shadow: inset 0 0 0 1px var(--border-accent), var(--glow);
 }
 
 /* Input focus ring: 1.5px + 8px spread */
@@ -59,5 +61,5 @@ body{
 .eden-status-dot {
   width: 8px; height: 8px; border-radius: 9999px;
   background: var(--brand);
-  box-shadow: 0 0 0 2px rgba(184,255,77,.40);
+  box-shadow: 0 0 0 2px rgba(200,255,128,.40);
 }

@@ -19,7 +19,7 @@ module.exports = {
         'eden-out': 'cubic-bezier(0.2,0.0,0.2,1)',
       },
       borderRadius: {
-        eden: '16px',
+        eden: '5.5px',
       },
     },
   },
