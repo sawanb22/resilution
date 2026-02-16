@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+
+@theme {
+  --breakpoint-vs: 400px;
+  --breakpoint-sx: 500px;
+
+  /* Figma Design Tokens */
+  --color-brand-neon: #C8FF80;
+  --color-surface-dark: #000000;
+  --color-surface-card: #121212;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #9ca3af;
+
+  --font-macro: "macro", sans-serif;
+  --font-arial: "arial", sans-serif;
+  --font-gacco: "GACCO", sans-serif;
+}
+
+@font-face {
+  font-family: "GACCO";
+  src: url(./assets/MACRO_FREE.otf);
+  size-adjust: 75%;
+}
+
+@font-face {
+  font-family: "macro";
+  src: url(./assets/MACRO_FREE.otf);
+}
+
+@font-face {
+  font-family: "arial";
+  src: url(./assets/ARIAL.TTF);
+}
+
+:root {
+  font-weight: 400;
+  --dark: #000;
+  --light: #fff;
+  --savegreen: #C8FF80;
+}
+
+a {
+  font-weight: 500;
+  text-decoration: inherit;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: "arial";
+  scroll-behavior: smooth;
+  background-color: black;
+  color: white;
+}
+
+@utility text-shadow-neon {
+  text-shadow: 0 0 10px rgba(200, 255, 128, 0.5), 0 0 20px rgba(200, 255, 128, 0.3);
+}
+
+@theme {
+  --animate-float-slow: float 6s ease-in-out infinite;
+  --animate-pulse-slow: pulse-glow 4s ease-in-out infinite;
+
+  @keyframes float {
+
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-20px);
+    }
+  }
+
+  @keyframes pulse-glow {
+
+    0%,
+    100% {
+      opacity: 1;
+      filter: drop-shadow(0 0 15px rgba(200, 255, 128, 0.4));
+    }
+
+    50% {
+      opacity: 0.8;
+      filter: drop-shadow(0 0 5px rgba(200, 255, 128, 0.2));
+    }
+  }
+}
